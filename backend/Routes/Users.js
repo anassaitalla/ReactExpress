@@ -180,11 +180,9 @@ router.delete("/:username", (req, res) => {
           "Erreur lors de la vérification de l'utilisateur existant :",
           error
         );
-        return res
-          .status(500)
-          .json({
-            error: "Erreur lors de la vérification de l'utilisateur existant.",
-          });
+        return res.status(500).json({
+          error: "Erreur lors de la vérification de l'utilisateur existant.",
+        });
       }
 
       // Vérifie si l'utilisateur existe
@@ -202,11 +200,9 @@ router.delete("/:username", (req, res) => {
               "Erreur lors de la suppression de l'utilisateur :",
               error
             );
-            return res
-              .status(500)
-              .json({
-                error: "Erreur lors de la suppression de l'utilisateur.",
-              });
+            return res.status(500).json({
+              error: "Erreur lors de la suppression de l'utilisateur.",
+            });
           }
 
           return res
@@ -214,6 +210,49 @@ router.delete("/:username", (req, res) => {
             .json({ message: "Utilisateur supprimé avec succès." });
         }
       );
+    }
+  );
+});
+
+// LOGIN
+// ###########################################################################333############################
+// ###########################################################################333############################
+router.post("/login", (req, res) => {
+  const { userName, password } = req.body;
+
+  // Validation des données
+  if (!userName || !password) {
+    return res
+      .status(400)
+      .json({
+        error: "Veuillez saisir votre nom d'utilisateur et mot de passe.",
+      });
+  }
+
+  // Vérification de l'utilisateur dans la base de données
+  connection.query(
+    "SELECT * FROM user WHERE username = ? AND password = ?",
+    [userName, password],
+    (error, results) => {
+      if (error) {
+        console.error(
+          "Erreur lors de la vérification des identifiants :",
+          error
+        );
+        return res
+          .status(500)
+          .json({ error: "Erreur lors de la vérification des identifiants." });
+      }
+
+      // Vérifie si l'utilisateur est trouvé
+      if (results.length === 0) {
+        return res
+          .status(400)
+          .json({ error: "Nom d'utilisateur ou mot de passe incorrect." });
+      }
+
+      // Succès
+      return res.status(200).json({ message: "Authentification réussie." });
     }
   );
 });
