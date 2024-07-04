@@ -222,11 +222,9 @@ router.post("/login", (req, res) => {
 
   // Validation des données
   if (!userName || !password) {
-    return res
-      .status(400)
-      .json({
-        error: "Veuillez saisir votre nom d'utilisateur et mot de passe.",
-      });
+    return res.status(400).json({
+      error: "Veuillez saisir votre nom d'utilisateur et mot de passe.",
+    });
   }
 
   // Vérification de l'utilisateur dans la base de données
@@ -251,10 +249,26 @@ router.post("/login", (req, res) => {
           .json({ error: "Nom d'utilisateur ou mot de passe incorrect." });
       }
 
-      // Succès
-      return res.status(200).json({ message: "Authentification réussie." });
+      // Stocker les informations de l'utilisateur dans la session
+      req.session.user = results[0];
+
+      // Redirection vers la page suivante ou envoi des informations de l'utilisateur
+      return res
+        .status(200)
+        .json({ message: "Authentification réussie.", user: results[0] });
     }
   );
+});
+
+router.get("/profile", (req, res) => {
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ error: "Non autorisé. Veuillez vous connecter." });
+  }
+
+  // Envoyer les informations de l'utilisateur connecté
+  return res.status(200).json({ user: req.session.user });
 });
 
 module.exports = router;
