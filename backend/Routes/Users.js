@@ -271,4 +271,18 @@ router.get("/profile", (req, res) => {
   return res.status(200).json({ user: req.session.user });
 });
 
+
+// LOGOUT
+// ###########################################################################333############################
+// ###########################################################################333############################
+router.post("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ error: "Could not log out, please try again" });
+    }
+    res.clearCookie('connect.sid'); // clear the session cookie
+    return res.status(200).json({ message: "Logout successful" });
+  });
+});
+
 module.exports = router;

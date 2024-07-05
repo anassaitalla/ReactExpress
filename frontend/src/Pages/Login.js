@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import axios from "axios";
-import "./Login.css"; // Make sure to create this CSS file
+import { useNavigate } from "react-router-dom";
+import "./Login.css";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,7 +26,10 @@ function Login() {
       );
 
       console.log("Login successful", response.data);
-      // Handle successful login
+      // Store user data in localStorage
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      // Navigate to dashboard
+      navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.error || "An error occurred during login");
     }
@@ -63,7 +68,6 @@ function Login() {
             Login
           </button>
         </form>
-        
       </div>
     </div>
   );
