@@ -5,7 +5,7 @@ const connection = require("./db");
 const usersRouter = require("./routes/users");
 
 const app = express();
-// const port = 3000;
+const port = 5000;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
