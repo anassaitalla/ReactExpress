@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const session = require("express-session");
 const connection = require("./db");
-const usersRouter = require("./routes/users");
+const usersRouter = require("./Routes/Users");
 const cors = require('cors');  // Add this line
 
 const app = express();

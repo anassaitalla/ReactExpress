@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./DashboardUser.css";
+import Navbar from '../components/Navbar';
 
 function DashboardUser() {
   const [user, setUser] = useState(null);
@@ -16,7 +17,6 @@ function DashboardUser() {
             withCredentials: true,
           }
         );
-        // console.log('User data received:', response.data.user);
         setUser(response.data.user);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -27,46 +27,24 @@ function DashboardUser() {
     fetchUserData();
   }, [navigate]);
 
-  const handleLogout = async () => {
-    try {
-      await axios.post(
-        "http://localhost:5000/users/logout",
-        {},
-        {
-          withCredentials: true,
-        }
-      );
-      // Clear user data from local storage
-      localStorage.removeItem("user");
-      // Redirect to login page
-      navigate("/login");
-    } catch (error) {
-      console.error("Error logging out:", error);
-    }
-  };
-
   if (!user) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="dashboard-container">
-      <h1>Welcome, {user.fullName}</h1>
-      <div className="user-info">
-        <p>
-          <strong>Username:</strong> {user.userName}
-        </p>
-        <p>
-          <strong>Email:</strong> {user.mail}
-        </p>
-        <p>
-          <strong>Role:</strong> {user.role}
-        </p>
+    <>
+      <Navbar />
+      <div className="dashboard-container">
+        <h1>Dashboard</h1>
+        <div className="user-info">
+          <h2>User Information</h2>
+          <p><strong>Full Name:</strong> {user.fullName}</p>
+          <p><strong>Username:</strong> {user.userName}</p>
+          <p><strong>Email:</strong> {user.mail}</p>
+          <p><strong>Role:</strong> {user.role}</p>
+        </div>
       </div>
-      <button className="logout-button" onClick={handleLogout}>
-        Logout
-      </button>
-    </div>
+    </>
   );
 }
 
