@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "./Navbar.module.css";
+import logo from '../assets/logo.png';
 
 function Navbar() {
   const navigate = useNavigate();
@@ -26,8 +27,8 @@ function Navbar() {
   return (
     <nav className={styles.navbar}>
       <div className={styles.navbarBrand}>
-        <img src="/path/to/logo.png" alt="Logo" />
-        <span>Your App Name</span>
+      <img src={logo} alt="Logo" />
+        <span>APPS</span>
       </div>
       <ul className={styles.navbarNav}>
         {/* <li className={styles.navItem}>
