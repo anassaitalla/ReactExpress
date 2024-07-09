@@ -24,6 +24,10 @@ import {
   TextField,
   Grid,
   styled,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -49,14 +53,20 @@ function DashboardUser() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/users/profile", {
-          withCredentials: true,
-        });
+        const response = await axios.get(
+          "http://localhost:5000/users/profile",
+          {
+            withCredentials: true,
+          }
+        );
         setUser(response.data.user);
 
-        const allUsersResponse = await axios.get("http://localhost:5000/users", {
-          withCredentials: true,
-        });
+        const allUsersResponse = await axios.get(
+          "http://localhost:5000/users",
+          {
+            withCredentials: true,
+          }
+        );
         setAllUsers(allUsersResponse.data);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -69,10 +79,15 @@ function DashboardUser() {
 
   const handleDeleteUser = async () => {
     try {
-      await axios.delete(`http://localhost:5000/users/${selectedUser.id}`, {
-        withCredentials: true,
-      });
-      setAllUsers(allUsers.filter((user) => user.id !== selectedUser.id));
+      await axios.delete(
+        `http://localhost:5000/users/${selectedUser.userName}`,
+        {
+          withCredentials: true,
+        }
+      );
+      setAllUsers(
+        allUsers.filter((user) => user.userName !== selectedUser.userName)
+      );
       setOpenDeleteDialog(false);
       setSelectedUser(null);
     } catch (error) {
@@ -82,10 +97,18 @@ function DashboardUser() {
 
   const handleEditUser = async () => {
     try {
-      await axios.put(`http://localhost:5000/users/${editUser.id}`, editUser, {
-        withCredentials: true,
-      });
-      setAllUsers(allUsers.map((user) => (user.id === editUser.id ? editUser : user)));
+      await axios.put(
+        `http://localhost:5000/users/${editUser.userName}`,
+        editUser,
+        {
+          withCredentials: true,
+        }
+      );
+      setAllUsers(
+        allUsers.map((user) =>
+          user.userName === editUser.userName ? editUser : user
+        )
+      );
       setEditDialogOpen(false);
       setEditUser(null);
     } catch (error) {
@@ -116,16 +139,28 @@ function DashboardUser() {
           </Typography>
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>All Users</Typography>
+              <Typography variant="h6" gutterBottom>
+                All Users
+              </Typography>
               <TableContainer component={Paper}>
                 <Table>
                   <TableHead className="table-header">
                     <TableRow>
-                      <TableHeaderCell className="table-header-cell">Full Name</TableHeaderCell>
-                      <TableHeaderCell className="table-header-cell">Username</TableHeaderCell>
-                      <TableHeaderCell className="table-header-cell">Email</TableHeaderCell>
-                      <TableHeaderCell className="table-header-cell">Role</TableHeaderCell>
-                      <TableHeaderCell className="table-header-cell">Actions</TableHeaderCell>
+                      <TableHeaderCell className="table-header-cell">
+                        Full Name
+                      </TableHeaderCell>
+                      <TableHeaderCell className="table-header-cell">
+                        Username
+                      </TableHeaderCell>
+                      <TableHeaderCell className="table-header-cell">
+                        Email
+                      </TableHeaderCell>
+                      <TableHeaderCell className="table-header-cell">
+                        Role
+                      </TableHeaderCell>
+                      <TableHeaderCell className="table-header-cell">
+                        Actions
+                      </TableHeaderCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -136,13 +171,17 @@ function DashboardUser() {
                         <TableCell>{user.mail}</TableCell>
                         <TableCell>{user.role}</TableCell>
                         <TableCell>
-                          <IconButton onClick={() => handleOpenEditDialog(user)}>
+                          <IconButton
+                            onClick={() => handleOpenEditDialog(user)}
+                          >
                             <EditIcon />
                           </IconButton>
-                          <IconButton onClick={() => {
-                            setSelectedUser(user);
-                            setOpenDeleteDialog(true);
-                          }}>
+                          <IconButton
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setOpenDeleteDialog(true);
+                            }}
+                          >
                             <DeleteIcon />
                           </IconButton>
                         </TableCell>
@@ -157,7 +196,10 @@ function DashboardUser() {
       </Container>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
+      <Dialog
+        open={openDeleteDialog}
+        onClose={() => setOpenDeleteDialog(false)}
+      >
         <DialogTitle>Delete User</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -184,15 +226,9 @@ function DashboardUser() {
             type="text"
             fullWidth
             value={editUser?.fullName || ""}
-            onChange={(e) => setEditUser({ ...editUser, fullName: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Username"
-            type="text"
-            fullWidth
-            value={editUser?.userName || ""}
-            onChange={(e) => setEditUser({ ...editUser, userName: e.target.value })}
+            onChange={(e) =>
+              setEditUser({ ...editUser, fullName: e.target.value })
+            }
           />
           <TextField
             margin="dense"
@@ -204,12 +240,30 @@ function DashboardUser() {
           />
           <TextField
             margin="dense"
-            label="Role"
-            type="text"
+            label="Password"
+            type="password"
             fullWidth
-            value={editUser?.role || ""}
-            onChange={(e) => setEditUser({ ...editUser, role: e.target.value })}
+            value={editUser?.password || ""}
+            onChange={(e) =>
+              setEditUser({ ...editUser, password: e.target.value })
+            }
           />
+          <FormControl fullWidth margin="dense">
+            <InputLabel id="role-select-label">Role</InputLabel>
+            <Select
+              labelId="role-select-label"
+              id="role-select"
+              value={editUser?.role || ""}
+              label="Role"
+              onChange={(e) =>
+                setEditUser({ ...editUser, role: e.target.value })
+              }
+            >
+              <MenuItem value="admin">Admin</MenuItem>
+              <MenuItem value="user">User</MenuItem>
+              <MenuItem value="guest">Guest</MenuItem>
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditDialogOpen(false)} color="primary">
@@ -225,4 +279,3 @@ function DashboardUser() {
 }
 
 export default DashboardUser;
-
