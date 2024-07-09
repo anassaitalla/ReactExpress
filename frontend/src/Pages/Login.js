@@ -1,7 +1,23 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./Login.css";
+import {
+  Container,
+  CssBaseline,
+  Box,
+  Avatar,
+  Typography,
+  TextField,
+  Button,
+  Grid,
+  Link,
+  Alert,
+} from "@mui/material";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+
+
+const theme = createTheme();
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -36,40 +52,72 @@ function Login() {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-container">
-        <h2>Welcome Back</h2>
-        <p>Please login to your account</p>
-        <form onSubmit={handleSubmit}>
-          <div className="input-group">
-            <input
-              type="text"
+    <ThemeProvider theme={theme}>
+      <Container component="main" maxWidth="xs" className="login-container">
+        <CssBaseline />
+        <Box
+          sx={{
+            marginTop: 8,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
+            <LockOutlinedIcon />
+          </Avatar>
+          <Typography component="h1" variant="h5">
+            Sign in
+          </Typography>
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
               id="username"
+              label="Username"
+              name="username"
+              autoComplete="username"
+              autoFocus
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              required
-              placeholder="Username"
+              className="custom-text-field"
             />
-            <label htmlFor="username">Username</label>
-          </div>
-          <div className="input-group">
-            <input
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
               type="password"
               id="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
-              placeholder="Password"
+              className="custom-text-field"
             />
-            <label htmlFor="password">Password</label>
-          </div>
-          {error && <p className="error-message">{error}</p>}
-          <button type="submit" className="login-button">
-            Login
-          </button>
-        </form>
-      </div>
-    </div>
+            {error && <Alert severity="error" className="custom-alert">{error}</Alert>}
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              className="custom-button"
+            >
+              Sign In
+            </Button>
+            <Grid container>
+              <Grid item xs>
+                <Link href="#" variant="body2" className="custom-link">
+                  Forgot password?
+                </Link>
+              </Grid>
+              
+            </Grid>
+          </Box>
+        </Box>
+      </Container>
+    </ThemeProvider>
   );
 }
 
