@@ -28,9 +28,12 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/Add";
 
 const DashboardContainer = styled(Box)({
   padding: "20px",
@@ -48,6 +51,19 @@ function DashboardUser() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [newUser, setNewUser] = useState({
+    fullName: "",
+    userName: "",
+    mail: "",
+    password: "",
+    role: "",
+  });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,8 +106,18 @@ function DashboardUser() {
       );
       setOpenDeleteDialog(false);
       setSelectedUser(null);
+      setSnackbar({
+        open: true,
+        message: "User deleted successfully",
+        severity: "success",
+      });
     } catch (error) {
       console.error("Error deleting user:", error);
+      setSnackbar({
+        open: true,
+        message: "Error deleting user",
+        severity: "error",
+      });
     }
   };
 
@@ -111,14 +137,76 @@ function DashboardUser() {
       );
       setEditDialogOpen(false);
       setEditUser(null);
+      setSnackbar({
+        open: true,
+        message: "User updated successfully",
+        severity: "success",
+      });
     } catch (error) {
       console.error("Error updating user:", error);
+      setSnackbar({
+        open: true,
+        message: "Error updating user",
+        severity: "error",
+      });
+    }
+  };
+
+  const handleAddUser = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/users",
+        newUser,
+        {
+          withCredentials: true,
+        }
+      );
+      
+      if (response.data && response.data.userId) {
+        const addedUser = {
+          id: response.data.userId,
+          ...newUser
+        };
+        
+        setAllUsers(prevUsers => [...prevUsers, addedUser]);
+        
+        setAddDialogOpen(false);
+        setNewUser({
+          fullName: "",
+          userName: "",
+          mail: "",
+          password: "",
+          role: "",
+        });
+        
+        setSnackbar({
+          open: true,
+          message: "User added successfully",
+          severity: "success",
+        });
+      } else {
+        throw new Error("Invalid response from server");
+      }
+    } catch (error) {
+      console.error("Error adding user:", error);
+      setSnackbar({
+        open: true,
+        message: "Error adding user: " + (error.response?.data?.error || error.message),
+        severity: "error",
+      });
     }
   };
 
   const handleOpenEditDialog = (user) => {
     setEditUser(user);
     setEditDialogOpen(true);
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   if (!user) {
@@ -139,9 +227,16 @@ function DashboardUser() {
           </Typography>
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                All Users
-              </Typography>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography variant="h6">All Users</Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => setAddDialogOpen(true)}
+                >
+                  Add User
+                </Button>
+              </Box>
               <TableContainer component={Paper}>
                 <Table>
                   <TableHead className="table-header">
@@ -274,6 +369,90 @@ function DashboardUser() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Add User Dialog */}
+      <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)}>
+        <DialogTitle>Add New User</DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="Full Name"
+            type="text"
+            fullWidth
+            value={newUser.fullName}
+            onChange={(e) =>
+              setNewUser({ ...newUser, fullName: e.target.value })
+            }
+          />
+          <TextField
+            margin="dense"
+            label="Username"
+            type="text"
+            fullWidth
+            value={newUser.userName}
+            onChange={(e) =>
+              setNewUser({ ...newUser, userName: e.target.value })
+            }
+          />
+          <TextField
+            margin="dense"
+            label="Email"
+            type="email"
+            fullWidth
+            value={newUser.mail}
+            onChange={(e) => setNewUser({ ...newUser, mail: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Password"
+            type="password"
+            fullWidth
+            value={newUser.password}
+            onChange={(e) =>
+              setNewUser({ ...newUser, password: e.target.value })
+            }
+          />
+          <FormControl fullWidth margin="dense">
+            <InputLabel id="new-role-select-label">Role</InputLabel>
+            <Select
+              labelId="new-role-select-label"
+              id="new-role-select"
+              value={newUser.role}
+              label="Role"
+              onChange={(e) =>
+                setNewUser({ ...newUser, role: e.target.value })
+              }
+            >
+              <MenuItem value="admin">Admin</MenuItem>
+              <MenuItem value="user">User</MenuItem>
+              <MenuItem value="guest">Guest</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAddDialogOpen(false)} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleAddUser} color="primary">
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for success/error messages */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 }
