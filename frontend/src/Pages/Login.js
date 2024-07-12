@@ -1,3 +1,4 @@
+// Login.js
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -12,18 +13,24 @@ import {
   Grid,
   Link,
   Alert,
+  IconButton,
+  InputAdornment
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-
 
 const theme = createTheme();
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  const handleClickShowPassword = () => setShowPassword(!showPassword);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,8 +51,8 @@ function Login() {
       console.log("Login successful", response.data);
       // Store user data in localStorage
       localStorage.setItem("user", JSON.stringify(response.data.user));
-      // Navigate to dashboard
-      navigate("/dashboard");
+      // Navigate to dashboard and pass user data
+      navigate("/dashboard", { state: { user: response.data.user } });
     } catch (err) {
       setError(err.response?.data?.error || "An error occurred during login");
     }
@@ -89,12 +96,25 @@ function Login() {
               fullWidth
               name="password"
               label="Password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="custom-text-field"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowPassword}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             {error && <Alert severity="error" className="custom-alert">{error}</Alert>}
             <Button

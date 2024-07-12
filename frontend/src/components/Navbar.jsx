@@ -39,13 +39,13 @@ function Navbar() {
         <img src={logo} alt="Logo" />
         <span>APPS</span>
       </div>
-      <ul className={styles.navbarNav}>
+      {/* <ul className={styles.navbarNav}>
         {user && user.role === "admin" && (
           <li className={styles.navItem}>
             <Link to="/admin">Admin Panel</Link>
           </li>
         )}
-      </ul>
+      </ul> */}
       <div className={styles.navbarRight}>
         {user ? (
           <div className={styles.avatarContainer} onClick={toggleDropdown}>

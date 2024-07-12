@@ -1,11 +1,11 @@
+// DashboardUser.js
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import {
   Box,
   CircularProgress,
-  Container,
   Table,
   TableBody,
   TableCell,
@@ -22,7 +22,6 @@ import {
   DialogTitle,
   Button,
   TextField,
-  Grid,
   styled,
   Select,
   MenuItem,
@@ -30,10 +29,16 @@ import {
   InputLabel,
   Snackbar,
   Alert,
+  InputAdornment,
+  Grid,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
+import SaveIcon from "@mui/icons-material/Save";
+import CancelIcon from "@mui/icons-material/Cancel";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 const DashboardContainer = styled(Box)({
   padding: "20px",
@@ -64,7 +69,10 @@ function DashboardUser() {
     message: "",
     severity: "success",
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -92,6 +100,16 @@ function DashboardUser() {
 
     fetchUserData();
   }, [navigate]);
+
+  useEffect(() => {
+    if (location.state?.user) {
+      setSnackbar({
+        open: true,
+        message: `Welcome ${location.state.user.fullName}`,
+        severity: "success",
+      });
+    }
+  }, [location.state]);
 
   const handleDeleteUser = async () => {
     try {
@@ -154,292 +172,268 @@ function DashboardUser() {
 
   const handleAddUser = async () => {
     try {
-      const response = await axios.post(
-        "http://localhost:5000/users",
-        newUser,
-        {
-          withCredentials: true,
-        }
-      );
-      
-      if (response.data && response.data.userId) {
-        const addedUser = {
-          id: response.data.userId,
-          ...newUser
-        };
-        
-        setAllUsers(prevUsers => [...prevUsers, addedUser]);
-        
-        setAddDialogOpen(false);
-        setNewUser({
-          fullName: "",
-          userName: "",
-          mail: "",
-          password: "",
-          role: "",
-        });
-        
-        setSnackbar({
-          open: true,
-          message: "User added successfully",
-          severity: "success",
-        });
-      } else {
-        throw new Error("Invalid response from server");
-      }
+      await axios.post("http://localhost:5000/users", newUser, {
+        withCredentials: true,
+      });
+      setAllUsers([...allUsers, newUser]);
+      setAddDialogOpen(false);
+      setNewUser({
+        fullName: "",
+        userName: "",
+        mail: "",
+        password: "",
+        role: "",
+      });
+      setSnackbar({
+        open: true,
+        message: "User added successfully",
+        severity: "success",
+      });
     } catch (error) {
       console.error("Error adding user:", error);
       setSnackbar({
         open: true,
-        message: "Error adding user: " + (error.response?.data?.error || error.message),
+        message: "Error adding user",
         severity: "error",
       });
     }
   };
 
-  const handleOpenEditDialog = (user) => {
-    setEditUser(user);
-    setEditDialogOpen(true);
-  };
+  const handleClickShowPassword = () => setShowPassword(!showPassword);
+  const handleClickShowEditPassword = () => setShowEditPassword(!showEditPassword);
 
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
+  const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  if (!user) {
-    return (
-      <Box className="loading-container">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   return (
-    <>
+    <Box>
       <Navbar />
-      <Container className="dashboard-container">
-        <DashboardContainer>
-          <Typography variant="h4" gutterBottom>
-            Dashboard
-          </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">All Users</Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={() => setAddDialogOpen(true)}
-                >
-                  Add User
-                </Button>
-              </Box>
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead className="table-header">
-                    <TableRow>
-                      <TableHeaderCell className="table-header-cell">
-                        Full Name
-                      </TableHeaderCell>
-                      <TableHeaderCell className="table-header-cell">
-                        Username
-                      </TableHeaderCell>
-                      <TableHeaderCell className="table-header-cell">
-                        Email
-                      </TableHeaderCell>
-                      <TableHeaderCell className="table-header-cell">
-                        Role
-                      </TableHeaderCell>
-                      <TableHeaderCell className="table-header-cell">
-                        Actions
-                      </TableHeaderCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {allUsers.map((user) => (
-                      <TableRow key={user.id} className="table-row">
-                        <TableCell>{user.fullName}</TableCell>
-                        <TableCell>{user.userName}</TableCell>
-                        <TableCell>{user.mail}</TableCell>
-                        <TableCell>{user.role}</TableCell>
-                        <TableCell>
-                          <IconButton
-                            onClick={() => handleOpenEditDialog(user)}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setOpenDeleteDialog(true);
-                            }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Grid>
-          </Grid>
-        </DashboardContainer>
-      </Container>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={openDeleteDialog}
-        onClose={() => setOpenDeleteDialog(false)}
-      >
-        <DialogTitle>Delete User</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this user?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDeleteDialog(false)} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleDeleteUser} color="secondary">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Edit User Dialog */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
-        <DialogTitle>Edit User</DialogTitle>
-        <DialogContent>
-          <TextField
-            margin="dense"
-            label="Full Name"
-            type="text"
-            fullWidth
-            value={editUser?.fullName || ""}
-            onChange={(e) =>
-              setEditUser({ ...editUser, fullName: e.target.value })
-            }
-          />
-          <TextField
-            margin="dense"
-            label="Email"
-            type="email"
-            fullWidth
-            value={editUser?.mail || ""}
-            onChange={(e) => setEditUser({ ...editUser, mail: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Password"
-            type="password"
-            fullWidth
-            value={editUser?.password || ""}
-            onChange={(e) =>
-              setEditUser({ ...editUser, password: e.target.value })
-            }
-          />
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="role-select-label">Role</InputLabel>
-            <Select
-              labelId="role-select-label"
-              id="role-select"
-              value={editUser?.role || ""}
-              label="Role"
+      <DashboardContainer>
+        <Typography variant="h4" gutterBottom>
+          User Management
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setAddDialogOpen(true)}
+          startIcon={<PersonAddIcon />}
+        >
+          Add User
+        </Button>
+        <TableContainer component={Paper} sx={{ marginTop: 2 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>Full Name</TableHeaderCell>
+                <TableHeaderCell>Username</TableHeaderCell>
+                <TableHeaderCell>Email</TableHeaderCell>
+                <TableHeaderCell>Role</TableHeaderCell>
+                <TableHeaderCell>Actions</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {allUsers.map((user) => (
+                <TableRow key={user.userName}>
+                  <TableCell>{user.fullName}</TableCell>
+                  <TableCell>{user.userName}</TableCell>
+                  <TableCell>{user.mail}</TableCell>
+                  <TableCell>{user.role}</TableCell>
+                  <TableCell>
+                    <IconButton
+                      color="primary"
+                      onClick={() => {
+                        setEditUser(user);
+                        setEditDialogOpen(true);
+                      }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      color="secondary"
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setOpenDeleteDialog(true);
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <Dialog
+          open={openDeleteDialog}
+          onClose={() => setOpenDeleteDialog(false)}
+        >
+          <DialogTitle>Confirm Delete</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete this user?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenDeleteDialog(false)} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={handleDeleteUser} color="secondary">
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog
+          open={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+        >
+          <DialogTitle>Edit User</DialogTitle>
+          <DialogContent>
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Full Name"
+              value={editUser?.fullName || ""}
               onChange={(e) =>
-                setEditUser({ ...editUser, role: e.target.value })
+                setEditUser({ ...editUser, fullName: e.target.value })
               }
-            >
-              <MenuItem value="admin">Admin</MenuItem>
-              <MenuItem value="user">User</MenuItem>
-              <MenuItem value="guest">Guest</MenuItem>
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleEditUser} color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Add User Dialog */}
-      <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)}>
-        <DialogTitle>Add New User</DialogTitle>
-        <DialogContent>
-          <TextField
-            margin="dense"
-            label="Full Name"
-            type="text"
-            fullWidth
-            value={newUser.fullName}
-            onChange={(e) =>
-              setNewUser({ ...newUser, fullName: e.target.value })
-            }
-          />
-          <TextField
-            margin="dense"
-            label="Username"
-            type="text"
-            fullWidth
-            value={newUser.userName}
-            onChange={(e) =>
-              setNewUser({ ...newUser, userName: e.target.value })
-            }
-          />
-          <TextField
-            margin="dense"
-            label="Email"
-            type="email"
-            fullWidth
-            value={newUser.mail}
-            onChange={(e) => setNewUser({ ...newUser, mail: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Password"
-            type="password"
-            fullWidth
-            value={newUser.password}
-            onChange={(e) =>
-              setNewUser({ ...newUser, password: e.target.value })
-            }
-          />
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="new-role-select-label">Role</InputLabel>
-            <Select
-              labelId="new-role-select-label"
-              id="new-role-select"
-              value={newUser.role}
-              label="Role"
+            />
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Username"
+              value={editUser?.userName || ""}
               onChange={(e) =>
-                setNewUser({ ...newUser, role: e.target.value })
+                setEditUser({ ...editUser, userName: e.target.value })
               }
-            >
-              <MenuItem value="admin">Admin</MenuItem>
-              <MenuItem value="user">User</MenuItem>
-              <MenuItem value="guest">Guest</MenuItem>
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAddDialogOpen(false)} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleAddUser} color="primary">
-            Add
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Snackbar for success/error messages */}
+              disabled
+            />
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Email"
+              value={editUser?.mail || ""}
+              onChange={(e) =>
+                setEditUser({ ...editUser, mail: e.target.value })
+              }
+            />
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Role</InputLabel>
+              <Select
+                value={editUser?.role || ""}
+                onChange={(e) =>
+                  setEditUser({ ...editUser, role: e.target.value })
+                }
+              >
+                <MenuItem value="admin">Admin</MenuItem>
+                <MenuItem value="user">User</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Password"
+              type={showEditPassword ? "text" : "password"}
+              value={editUser?.password || ""}
+              onChange={(e) =>
+                setEditUser({ ...editUser, password: e.target.value })
+              }
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={handleClickShowEditPassword}
+                      onMouseDown={(e) => e.preventDefault()}
+                    >
+                      {showEditPassword ? <Visibility /> : <VisibilityOff />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEditDialogOpen(false)} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={handleEditUser} color="primary">
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)}>
+          <DialogTitle>Add New User</DialogTitle>
+          <DialogContent>
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Full Name"
+              value={newUser.fullName}
+              onChange={(e) =>
+                setNewUser({ ...newUser, fullName: e.target.value })
+              }
+            />
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Username"
+              value={newUser.userName}
+              onChange={(e) =>
+                setNewUser({ ...newUser, userName: e.target.value })
+              }
+            />
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Email"
+              value={newUser.mail}
+              onChange={(e) => setNewUser({ ...newUser, mail: e.target.value })}
+            />
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Role</InputLabel>
+              <Select
+                value={newUser.role}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, role: e.target.value })
+                }
+              >
+                <MenuItem value="admin">Admin</MenuItem>
+                <MenuItem value="user">User</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              value={newUser.password}
+              onChange={(e) =>
+                setNewUser({ ...newUser, password: e.target.value })
+              }
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={handleClickShowPassword}
+                      onMouseDown={(e) => e.preventDefault()}
+                    >
+                      {showPassword ? <Visibility /> : <VisibilityOff />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setAddDialogOpen(false)} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={handleAddUser} color="primary">
+              Add
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </DashboardContainer>
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
@@ -453,7 +447,7 @@ function DashboardUser() {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </>
+    </Box>
   );
 }
 
