@@ -1,4 +1,3 @@
-// DashboardUser.js
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
@@ -40,39 +39,41 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
+// Styling for the dashboard container
 const DashboardContainer = styled(Box)({
   padding: "20px",
 });
 
+// Styling for the table header cells
 const TableHeaderCell = styled(TableCell)({
   fontWeight: "bold",
   backgroundColor: "#f5f5f5",
 });
 
 function DashboardUser() {
-  const [user, setUser] = useState(null);
-  const [allUsers, setAllUsers] = useState([]);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editUser, setEditUser] = useState(null);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [newUser, setNewUser] = useState({
+  const [user, setUser] = useState(null); // State to store the current user
+  const [allUsers, setAllUsers] = useState([]); // State to store all users
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false); // State to handle delete dialog visibility
+  const [selectedUser, setSelectedUser] = useState(null); // State to store the selected user for deletion
+  const [editDialogOpen, setEditDialogOpen] = useState(false); // State to handle edit dialog visibility
+  const [editUser, setEditUser] = useState(null); // State to store the user being edited
+  const [addDialogOpen, setAddDialogOpen] = useState(false); // State to handle add user dialog visibility
+  const [newUser, setNewUser] = useState({ // State to store the new user details
     fullName: "",
     userName: "",
     mail: "",
     password: "",
     role: "",
   });
-  const [snackbar, setSnackbar] = useState({
+  const [snackbar, setSnackbar] = useState({ // State to handle snackbar notifications
     open: false,
     message: "",
     severity: "success",
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showEditPassword, setShowEditPassword] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const [showEditPassword, setShowEditPassword] = useState(false); // State to toggle edit password visibility
+  const navigate = useNavigate(); // Hook to navigate programmatically
+  const location = useLocation(); // Hook to get the current location
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -317,18 +318,6 @@ function DashboardUser() {
                 setEditUser({ ...editUser, mail: e.target.value })
               }
             />
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Role</InputLabel>
-              <Select
-                value={editUser?.role || ""}
-                onChange={(e) =>
-                  setEditUser({ ...editUser, role: e.target.value })
-                }
-              >
-                <MenuItem value="admin">Admin</MenuItem>
-                <MenuItem value="user">User</MenuItem>
-              </Select>
-            </FormControl>
             <TextField
               margin="normal"
               fullWidth
@@ -343,26 +332,42 @@ function DashboardUser() {
                   <InputAdornment position="end">
                     <IconButton
                       onClick={handleClickShowEditPassword}
-                      onMouseDown={(e) => e.preventDefault()}
+                      edge="end"
                     >
-                      {showEditPassword ? <Visibility /> : <VisibilityOff />}
+                      {showEditPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
             />
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Role</InputLabel>
+              <Select
+                value={editUser?.role || ""}
+                onChange={(e) =>
+                  setEditUser({ ...editUser, role: e.target.value })
+                }
+              >
+                <MenuItem value="admin">Admin</MenuItem>
+                <MenuItem value="user">User</MenuItem>
+              </Select>
+            </FormControl>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setEditDialogOpen(false)} color="primary">
               Cancel
             </Button>
-            <Button onClick={handleEditUser} color="primary">
+            <Button
+              onClick={handleEditUser}
+              color="primary"
+              startIcon={<SaveIcon />}
+            >
               Save
             </Button>
           </DialogActions>
         </Dialog>
         <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)}>
-          <DialogTitle>Add New User</DialogTitle>
+          <DialogTitle>Add User</DialogTitle>
           <DialogContent>
             <TextField
               margin="normal"
@@ -389,18 +394,6 @@ function DashboardUser() {
               value={newUser.mail}
               onChange={(e) => setNewUser({ ...newUser, mail: e.target.value })}
             />
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Role</InputLabel>
-              <Select
-                value={newUser.role}
-                onChange={(e) =>
-                  setNewUser({ ...newUser, role: e.target.value })
-                }
-              >
-                <MenuItem value="admin">Admin</MenuItem>
-                <MenuItem value="user">User</MenuItem>
-              </Select>
-            </FormControl>
             <TextField
               margin="normal"
               fullWidth
@@ -413,40 +406,51 @@ function DashboardUser() {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton
-                      onClick={handleClickShowPassword}
-                      onMouseDown={(e) => e.preventDefault()}
-                    >
-                      {showPassword ? <Visibility /> : <VisibilityOff />}
+                    <IconButton onClick={handleClickShowPassword} edge="end">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
             />
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Role</InputLabel>
+              <Select
+                value={newUser.role}
+                onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+              >
+                <MenuItem value="admin">Admin</MenuItem>
+                <MenuItem value="user">User</MenuItem>
+              </Select>
+            </FormControl>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setAddDialogOpen(false)} color="primary">
               Cancel
             </Button>
-            <Button onClick={handleAddUser} color="primary">
+            <Button
+              onClick={handleAddUser}
+              color="primary"
+              startIcon={<PersonAddIcon />}
+            >
               Add
             </Button>
           </DialogActions>
         </Dialog>
-      </DashboardContainer>
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-      >
-        <Alert
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
           onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
         >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={snackbar.severity}
+            sx={{ width: "100%" }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </DashboardContainer>
     </Box>
   );
 }
