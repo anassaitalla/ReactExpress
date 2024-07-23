@@ -1,6 +1,7 @@
-import React, { useState } from "react"; // Import React and useState for managing component state
-import axios from "axios"; // Import axios for making HTTP requests
-import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation after login
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { loginUser } from "../store/authSlice";
 import {
   Container,
   CssBaseline,
@@ -14,53 +15,34 @@ import {
   Alert,
   IconButton,
   InputAdornment
-} from "@mui/material"; // Import Material-UI components for UI
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined"; // Import icon for the avatar
-import Visibility from "@mui/icons-material/Visibility"; // Import visibility icon for showing password
-import VisibilityOff from "@mui/icons-material/VisibilityOff"; // Import visibility off icon for hiding password
-import { createTheme, ThemeProvider } from "@mui/material/styles"; // Import theme creation and ThemeProvider for Material-UI theming
+} from "@mui/material";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-// Create a custom theme using Material-UI
 const theme = createTheme();
 
 function Login() {
-  // State variables to manage form inputs and state
-  const [username, setUsername] = useState(""); // State for username input
-  const [password, setPassword] = useState(""); // State for password input
-  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
-  const [error, setError] = useState(""); // State for error messages
-  const navigate = useNavigate(); // useNavigate hook for programmatic navigation
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user, error, loading } = useSelector((state) => state.auth);
 
-  // Function to toggle the visibility of the password
   const handleClickShowPassword = () => setShowPassword(!showPassword);
 
-  // Function to handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent the default form submission behavior
-    setError(""); // Clear any previous error messages
-
-    try {
-      // Make a POST request to the login endpoint
-      const response = await axios.post(
-        "http://localhost:5000/users/login",
-        {
-          userName: username, // Pass the username
-          password: password, // Pass the password
-        },
-        {
-          withCredentials: true, // Include credentials (cookies)
-        }
-      );
-
-      console.log("Login successful", response.data); // Log the successful response
-      // Store user data in localStorage
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      // Navigate to dashboard and pass user data
-      navigate("/dashboard", { state: { user: response.data.user } });
-    } catch (err) {
-      // Handle errors and set error message
-      setError(err.response?.data?.error || "An error occurred during login");
-    }
+    e.preventDefault();
+    dispatch(loginUser({ username, password }))
+      .unwrap()
+      .then(() => {
+        navigate("/dashboard");
+      })
+      .catch(() => {
+        // Error handling is done in the slice
+      });
   };
 
   return (
@@ -76,10 +58,10 @@ function Login() {
           }}
         >
           <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-            <LockOutlinedIcon /> {/* Display lock icon in avatar */}
+            <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign in {/* Display "Sign in" heading */}
+            Sign in
           </Typography>
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField
@@ -91,8 +73,8 @@ function Login() {
               name="username"
               autoComplete="username"
               autoFocus
-              value={username} // Bind the username state to the input value
-              onChange={(e) => setUsername(e.target.value)} // Update username state on input change
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="custom-text-field"
             />
             <TextField
@@ -101,40 +83,41 @@ function Login() {
               fullWidth
               name="password"
               label="Password"
-              type={showPassword ? "text" : "password"} // Toggle password visibility
+              type={showPassword ? "text" : "password"}
               id="password"
               autoComplete="current-password"
-              value={password} // Bind the password state to the input value
-              onChange={(e) => setPassword(e.target.value)} // Update password state on input change
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="custom-text-field"
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
                       aria-label="toggle password visibility"
-                      onClick={handleClickShowPassword} // Toggle password visibility on icon click
+                      onClick={handleClickShowPassword}
                       edge="end"
                     >
-                      {showPassword ? <VisibilityOff /> : <Visibility />} {/* Display appropriate icon based on password visibility */}
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
             />
-            {error && <Alert severity="error" className="custom-alert">{error}</Alert>} {/* Display error message if any */}
+            {error && <Alert severity="error" className="custom-alert">{error}</Alert>}
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
               className="custom-button"
+              disabled={loading}
             >
-              Sign In {/* Submit button */}
+              Sign In
             </Button>
             <Grid container>
               <Grid item xs>
                 <Link href="#" variant="body2" className="custom-link">
-                  Forgot password? {/* Link for password recovery */}
+                  Forgot password?
                 </Link>
               </Grid>
             </Grid>
@@ -145,4 +128,4 @@ function Login() {
   );
 }
 
-export default Login; // Export the Login component
+export default Login;

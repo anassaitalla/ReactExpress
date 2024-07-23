@@ -1,29 +1,27 @@
-// App.js
-
-// Import necessary dependencies from React and react-router-dom
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import './App.css'; // Import CSS styles
-import Login from './Pages/Login'; // Import Login component
-import DashboardUser from './Pages/DashboardUser'; // Import DashboardUser component
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import './App.css';
+import Login from './Pages/Login';
+import DashboardUser from './Pages/DashboardUser';
 
-// Main App component
 function App() {
+  const { user } = useSelector((state) => state.auth);
+
   return (
-    // Set up routing using BrowserRouter
     <Router>
       <div className="App">
-        {/* Define routes using Routes component */}
         <Routes>
-          {/* Route for the root path and /login, both render Login component */}
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
-          {/* Route for /dashboard, renders DashboardUser component */}
-          <Route path="/dashboard" element={<DashboardUser />} />
+          <Route
+            path="/dashboard"
+            element={user ? <DashboardUser /> : <Navigate to="/login" />}
+          />
         </Routes>
       </div>
     </Router>
   );
 }
 
-export default App; // Export the App component for use in other files
+export default App;
