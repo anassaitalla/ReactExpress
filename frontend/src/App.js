@@ -1,23 +1,21 @@
+// src/App.js
+
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
 import Login from './Pages/Login';
 import DashboardUser from './Pages/DashboardUser';
+import Profile from './Pages/Profile';
 
 function App() {
-  const { user } = useSelector((state) => state.auth);
-
   return (
     <Router>
       <div className="App">
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
-          <Route
-            path="/dashboard"
-            element={user ? <DashboardUser /> : <Navigate to="/login" />}
-          />
+          <Route path="/dashboard" element={<DashboardUser />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </div>
     </Router>

@@ -61,11 +61,10 @@ function Navbar() {
               <div className={styles.dropdownItem}>
                 <span>{user.fullName}</span>
               </div>
+              
               {/* Social media links */}
               <div className={styles.dropdownItem}>
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
-                  Facebook
-                </a>
+              <Link to="/profile" className={styles.dropdownItem}>My Profile</Link>
               </div>
               <div className={styles.dropdownItem}>
                 <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
